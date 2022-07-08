@@ -1,26 +1,39 @@
 <template>
-  <img alt="Vue logo" src="./assets/logo.png">
-  <HelloWorld msg="Welcome to Your Vue.js App"/>
+  <div class="container">
+    <ElevatorShaft :floors="5" :queue="queue" v-for="shaft in 1" :key="shaft" />
+    <ElevatorControls @floor-selected="onFloorSelect" :floors="5" />
+  </div>
 </template>
 
 <script>
-import HelloWorld from './components/HelloWorld.vue'
+  import ElevatorShaft from "./components/ElevatorShaft.vue";
+  import ElevatorControls from "./components/ElevatorControls.vue";
 
-export default {
-  name: 'App',
-  components: {
-    HelloWorld
-  }
-}
+  export default {
+    name: "App",
+    components: {
+      ElevatorShaft,
+      ElevatorControls,
+    },
+    data() {
+      return {
+        queue: [1],
+      };
+    },
+    methods: {
+      onFloorSelect(floor) {
+        this.queue = [floor];
+      },
+    },
+  };
 </script>
 
 <style>
-#app {
-  font-family: Avenir, Helvetica, Arial, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  text-align: center;
-  color: #2c3e50;
-  margin-top: 60px;
-}
+  .container {
+    display: flex;
+    flex-direction: row;
+    margin: 50px 25%;
+    border-top: 2px solid lightgray;
+    border-bottom: 2px solid lightgray;
+  }
 </style>
