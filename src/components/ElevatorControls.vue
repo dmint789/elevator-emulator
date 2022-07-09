@@ -3,11 +3,8 @@
     <div class="floor" v-for="floor in floors" :key="floor">
       <button
         class="button"
-        :style="{ backgroundColor: false ? 'orange' : 'blue' }"
-        @click="$emit('floor-selected', floor)"
-        :name="floor"
-        :value="floor"
-        checked
+        :style="{ backgroundColor: inQueue(floor - 1) ? 'orange' : 'blue' }"
+        @click="$emit('floor-selected', floor - 1)"
       >
         {{ floor }}
       </button>
@@ -20,8 +17,14 @@
     name: "ElevatorControls",
     props: {
       floors: Number,
+      queue: Array,
     },
     emits: ["floor-selected"],
+    methods: {
+      inQueue(floor) {
+        return this.queue.find(item => item === floor) !== undefined;
+      },
+    },
   };
 </script>
 
