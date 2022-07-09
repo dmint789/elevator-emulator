@@ -13,7 +13,6 @@
 </template>
 
 <script>
-  // || (currentFloor === floor && animating)
   export default {
     name: "ElevatorShaft",
     props: {
@@ -23,25 +22,31 @@
     data() {
       return {
         animating: false,
-        currentFloor: this.queue[0],
-        targetFloor: this.queue[0],
+        currentFloor: 1,
+        targetFloor: 1,
       };
     },
+    emits: ["floor-reached"],
     watch: {
       queue(newQueue) {
-        this.targetFloor = newQueue[0];
-
+        if (newQueue[0] !== this.targetFloor) this.onTargetChanged(newQueue[0]);
+      },
+    },
+    methods: {
+      onFloorChanged() {
         if (this.targetFloor > this.currentFloor) {
           this.currentFloor = this.currentFloor + 1;
           this.animating = true;
         } else if (this.targetFloor < this.currentFloor) {
           this.currentFloor = this.currentFloor - 1;
           this.animating = true;
+        } else {
+          this.$emit("floor-reached");
         }
       },
-    },
-    methods: {
-      onFloorChanged() {
+      onTargetChanged(floor) {
+        this.targetFloor = floor;
+
         if (this.targetFloor > this.currentFloor) {
           this.currentFloor = this.currentFloor + 1;
           this.animating = true;
@@ -78,14 +83,12 @@
     height: 100%;
   }
 
-  .up-leave-active {
+  .up-leave-active,
+  .down-leave-active {
     transition: top 1s linear;
   }
   .up-leave-to {
     top: -80px;
-  }
-  .down-leave-active {
-    transition: top 1s linear;
   }
   .down-leave-to {
     top: 80px;

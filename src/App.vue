@@ -1,6 +1,12 @@
 <template>
   <div class="container">
-    <ElevatorShaft :floors="5" :queue="queue" v-for="shaft in 1" :key="shaft" />
+    <ElevatorShaft
+      @floor-reached="onFloorReached"
+      :floors="5"
+      :queue="queue"
+      v-for="shaft in 1"
+      :key="shaft"
+    />
     <ElevatorControls @floor-selected="onFloorSelect" :floors="5" />
   </div>
 </template>
@@ -17,12 +23,18 @@
     },
     data() {
       return {
-        queue: [1],
+        queue: [],
       };
     },
     methods: {
       onFloorSelect(floor) {
-        this.queue = [floor];
+        if (!this.queue.find(item => item === floor))
+          this.queue = [...this.queue, floor];
+        console.log(this.queue);
+      },
+      onFloorReached() {
+        this.queue = this.queue.slice(1);
+        console.log(this.queue);
       },
     },
   };
