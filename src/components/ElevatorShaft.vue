@@ -8,8 +8,9 @@
       >
         <div
           v-if="
-            nextFloor === floor - 1 &&
-            (state === 'idle' || state === 'updating-display')
+            currentFloor === floor - 1 &&
+            state !== 'moving' &&
+            state !== 'waiting'
           "
           class="elevator"
         >
@@ -28,12 +29,12 @@
       queue: Array,
     },
     data() {
-      // States: idle, moving, waiting, updating-display
+      // States: idle, moving, waiting, updating-display, updating-display-before-waiting
       return {
         state: "idle",
         currentFloor: 0,
-        nextFloor: 0,
         targetFloor: undefined,
+        displayText: "",
       };
     },
     emits: ["target-reached", "reset-location"],
@@ -49,24 +50,24 @@
     },
     methods: {
       onEnter(floor) {
-        this.currentFloor = this.nextFloor;
-
         if (this.currentFloor === this.targetFloor) {
-          this.$emit("target-reached", floor);
-          this.state = "waiting";
+          this.state = "updating-display-before-waiting";
         } else {
-          this.updateFloor();
+          this.state = "updating-display";
         }
       },
       updateFloor() {
         this.$emit("reset-location");
+        this.displayText = "";
 
         if (this.targetFloor > this.currentFloor) {
-          this.nextFloor = this.currentFloor + 1;
+          this.currentFloor = this.currentFloor + 1;
           this.state = "moving";
+          this.displayText = (this.targetFloor + 1).toString() + " /\\";
         } else if (this.targetFloor < this.currentFloor) {
-          this.nextFloor = this.currentFloor - 1;
+          this.currentFloor = this.currentFloor - 1;
           this.state = "moving";
+          this.displayText = (this.targetFloor + 1).toString() + " \\/";
         }
       },
       getAnimation(floor) {
@@ -75,19 +76,18 @@
         else if (this.targetFloor < floor) return "down";
       },
       getDisplayFloor() {
-        // This is to let the display update when the target floor was changed while the elevator was idle
+        // This is to let the display update when the target floor is changed
         if (this.state === "updating-display") {
           this.updateFloor();
         }
-
-        if (
-          this.targetFloor !== undefined &&
-          this.targetFloor !== this.currentFloor
-        ) {
-          return this.targetFloor + 1;
-        } else {
-          return "";
+        // This is to let the display update after reaching the target floor
+        else if (this.state === "updating-display-before-waiting") {
+          this.displayText = (this.targetFloor + 1).toString();
+          this.$emit("target-reached", this.targetFloor);
+          this.state = "waiting";
         }
+
+        return this.displayText;
       },
     },
   };
@@ -146,7 +146,7 @@
       opacity: 0.25;
     }
   }
-  .blink-enter-active,
+  /* .blink-enter-active, */
   .blink-leave-active {
     animation: blink 3s ease-in-out;
   }
