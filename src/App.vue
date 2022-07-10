@@ -1,22 +1,29 @@
 <template>
   <div class="container">
-    <ElevatorShaft
-      @reset-location="elevatorLocations[shaft - 1] = undefined"
-      @target-reached="floor => onTargetReached(floor, shaft - 1)"
-      :floors="floors"
-      :queue="queue"
-      v-for="shaft in shafts"
-      :key="shaft"
-    />
-    <ElevatorControls
-      @floor-selected="onFloorSelect"
-      :floors="floors"
-      :queue="queue"
-    />
+    <div class="app">
+      <ElevatorShaft v-for="shaft in shafts" :key="shaft * floors * shafts" :shaft="shaft - 1" />
+      <ElevatorControls />
+    </div>
+    <div class="parameters">
+      <button class="button" @click="changeFloors(-1)" :disabled="floors <= 2">-</button>
+      <p class="text">{{ floors }} floors</p>
+      <button
+        class="button"
+        style="margin-right: 10px"
+        @click="changeFloors(1)"
+        :disabled="floors >= 10"
+      >
+        +
+      </button>
+      <button class="button" @click="changeShafts(-1)" :disabled="shafts <= 1">-</button>
+      <p class="text">{{ shafts + (shafts > 1 ? " shafts" : " shaft") }}</p>
+      <button class="button" @click="changeShafts(1)" :disabled="shafts >= 5">+</button>
+    </div>
   </div>
 </template>
 
 <script>
+  import { mapState, mapMutations, mapActions } from "vuex";
   import ElevatorShaft from "./components/ElevatorShaft.vue";
   import ElevatorControls from "./components/ElevatorControls.vue";
 
@@ -26,42 +33,43 @@
       ElevatorShaft,
       ElevatorControls,
     },
-    data() {
-      return {
-        queue: [],
-        shafts: 1,
-        elevatorLocations: [],
-        floors: 5,
-      };
-    },
-    created() {
-      // Initialize all elevator locations to the first (0th) floor
-      this.elevatorLocations = Array(this.shafts).fill(0);
+    computed: {
+      ...mapState(["floors", "shafts"]),
     },
     methods: {
-      onFloorSelect(floor) {
-        // Make sure the selected floor isn't already in the queue or has an elevator there
-        if (
-          !this.queue.find(item => item === floor) &&
-          !this.elevatorLocations.find(item => item === floor)
-        ) {
-          this.queue = [...this.queue, floor];
-        }
-      },
-      onTargetReached(floor, shaft) {
-        this.queue = this.queue.slice(1);
-        this.elevatorLocations[shaft] = floor;
-      },
+      ...mapMutations(["resetState"]),
+      ...mapActions(["changeFloors", "changeShafts"]),
+    },
+    created() {
+      this.resetState();
     },
   };
 </script>
 
-<style>
+<style scoped>
   .container {
+    margin: 50px 20%;
+  }
+  .app {
     display: flex;
-    flex-direction: row;
-    margin: 50px 25%;
     border-top: 2px solid lightgray;
     border-bottom: 2px solid lightgray;
+  }
+  .parameters {
+    display: flex;
+    align-items: center;
+    flex-direction: row;
+    gap: 10px;
+    padding-top: 30px;
+    padding-left: 20px;
+  }
+  .button {
+    color: black;
+    height: 30px;
+    width: 30px;
+  }
+  .text {
+    font-family: Arial, Helvetica, sans-serif;
+    width: 65px;
   }
 </style>

@@ -3,8 +3,8 @@
     <div class="floor" v-for="floor in floors" :key="floor">
       <button
         class="button"
-        :style="{ backgroundColor: inQueue(floor - 1) ? 'orange' : 'blue' }"
-        @click="$emit('floor-selected', floor - 1)"
+        :style="{ backgroundColor: isInQueue(floor - 1) ? 'orange' : 'blue' }"
+        @click="onFloorSelect(floor - 1)"
       >
         {{ floor }}
       </button>
@@ -13,27 +13,39 @@
 </template>
 
 <script>
+  import { mapState, mapGetters, mapMutations, mapActions } from "vuex";
+
   export default {
     name: "ElevatorControls",
-    props: {
-      floors: Number,
-      queue: Array,
+    computed: {
+      ...mapState(["floors"]),
+      ...mapGetters(["isInQueue", "closestElevator", "isValidFloor"]),
     },
-    emits: ["floor-selected"],
     methods: {
-      inQueue(floor) {
-        return this.queue.find(item => item === floor) !== undefined;
+      onFloorSelect(floor) {
+        // Make sure the selected floor isn't already in the queue or has an elevator there
+        if (this.isValidFloor(floor)) {
+          this.addQueueItem(floor);
+
+          let closestElevatorId = this.closestElevator(floor);
+
+          if (closestElevatorId !== null) {
+            this.changeTarget({ shaft: closestElevatorId, newFloor: floor });
+          }
+        }
       },
+      ...mapMutations(["addQueueItem"]),
+      ...mapActions(["changeTarget"]),
     },
   };
 </script>
 
-<style>
+<style scoped>
   .controls {
+    flex-grow: 1;
     display: flex;
     flex-direction: column-reverse;
-    height: 400px;
-    width: 200px;
+    height: 500px;
   }
   .floor {
     flex-grow: 1;
