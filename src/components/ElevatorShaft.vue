@@ -95,8 +95,8 @@
       getHeight(floor) {
         if (this.state !== STATE.WAITING) {
           if (this.targetFloor > floor) {
-            return -Math.round(400 / this.floors) + "px";
-          } else return Math.round(400 / this.floors) + "px";
+            return -Math.round(500 / this.floors) + "px";
+          } else return Math.round(500 / this.floors) + "px";
         }
       },
       ...mapMutations(["setState"]),

@@ -23,7 +23,7 @@
 </template>
 
 <script>
-  import { mapState, mapMutations, mapActions } from "vuex";
+  import { mapState, mapActions } from "vuex";
   import ElevatorShaft from "./components/ElevatorShaft.vue";
   import ElevatorControls from "./components/ElevatorControls.vue";
 
@@ -37,11 +37,11 @@
       ...mapState(["floors", "shafts"]),
     },
     methods: {
-      ...mapMutations(["resetState"]),
       ...mapActions(["changeFloors", "changeShafts"]),
     },
-    created() {
-      this.resetState();
+    beforeCreate() {
+      if (localStorage.getItem("store")) this.$store.commit("reloadState");
+      else this.$store.commit("resetState", false);
     },
   };
 </script>

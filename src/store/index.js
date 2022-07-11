@@ -3,9 +3,9 @@ import * as STATE from "../elevatorStates";
 
 export default createStore({
   state: {
-    queue: [],
     floors: 5,
     shafts: 1,
+    queue: [],
     elevators: [],
   },
   getters: {
@@ -45,7 +45,7 @@ export default createStore({
     },
   },
   mutations: {
-    resetState: state => {
+    resetState: (state, fromUser = true) => {
       // Initialize all elevators and the queue
       state.queue = [];
       state.elevators = [];
@@ -58,19 +58,46 @@ export default createStore({
           shaft: i,
         });
       }
+
+      localStorage.setItem("store", JSON.stringify(state));
     },
-    setFloors: (state, floors) => (state.floors = floors),
-    setShafts: (state, shafts) => (state.shafts = shafts),
+    reloadState: state => {
+      let tempState = JSON.parse(localStorage.getItem("store"));
+
+      for (let i = 0; i < tempState.shafts; i++) {
+        if (
+          tempState.elevators[i].state === STATE.MOVING ||
+          tempState.elevators[i].state === STATE.WAITING
+        )
+          tempState.elevators[i].state = STATE.UPDATING;
+      }
+
+      Object.assign(state, tempState);
+    },
+    setFloors: (state, floors) => {
+      state.floors = floors;
+      localStorage.setItem("store", JSON.stringify(state));
+    },
+    setShafts: (state, shafts) => {
+      state.shafts = shafts;
+      localStorage.setItem("store", JSON.stringify(state));
+    },
     setFloor: (state, { shaft, newFloor }) => {
-      //console.log("New floor: ", newFloor);
       state.elevators[shaft].floor = newFloor;
+      localStorage.setItem("store", JSON.stringify(state));
     },
-    setTarget: (state, { shaft, newFloor }) => (state.elevators[shaft].target = newFloor),
+    setTarget: (state, { shaft, newFloor }) => {
+      state.elevators[shaft].target = newFloor;
+      localStorage.setItem("store", JSON.stringify(state));
+    },
     setState: (state, { shaft, newState }) => {
-      //console.log(newState);
       state.elevators[shaft].state = newState;
+      localStorage.setItem("store", JSON.stringify(state));
     },
-    addQueueItem: (state, floor) => state.queue.push(floor),
+    addQueueItem: (state, floor) => {
+      state.queue.push(floor);
+      localStorage.setItem("store", JSON.stringify(state));
+    },
     deleteQueueItem: state => state.queue.shift(),
   },
   actions: {
