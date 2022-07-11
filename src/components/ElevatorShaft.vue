@@ -1,16 +1,14 @@
 <template>
-  <div class="shaft">
+  <div class="column">
     <div class="floor" v-for="floor in floors" :key="floor">
       <Transition
         @enter="onEnter"
         @after-leave="onLeave"
         :name="getAnimation(floor - 1)"
-        :style="{ '--top': getHeight(floor - 1) }"
+        :style="{ '--top': getTop(floor - 1) }"
       >
         <div v-if="isVisible(floor - 1)" class="elevator">
-          <div class="display" :style="{ '--display-margin': (15 - floors).toString() + 'px' }">
-            <p class="text">{{ getDisplayText() }}</p>
-          </div>
+          <Display :text="getDisplayText()" :marginTop="Math.max(appHeight / 25 - floors, 5)" />
         </div>
       </Transition>
     </div>
@@ -19,28 +17,26 @@
 
 <script>
   import { mapState, mapActions, mapMutations } from "vuex";
+  import Display from "./Display.vue";
   import * as STATE from "../elevatorStates";
 
   export default {
     name: "ElevatorShaft",
+    components: {
+      Display,
+    },
     props: {
       shaft: Number,
+      appHeight: Number,
     },
     data() {
-      return { displayText: "" };
+      return {
+        displayText: "",
+      };
     },
     computed: {
       elevator() {
         return this.$store.getters.elevator(this.shaft);
-      },
-      currentFloor() {
-        return this.elevator.floor;
-      },
-      targetFloor() {
-        return this.elevator.target;
-      },
-      state() {
-        return this.elevator.state;
       },
       ...mapState(["floors"]),
     },
@@ -50,7 +46,7 @@
       },
       // This happens whenever a new floor is reached
       onLeave() {
-        if (this.state === STATE.MOVING) {
+        if (this.elevator.state === STATE.MOVING) {
           this.setState({ shaft: this.shaft, newState: STATE.UPDATING });
         }
         // Otherwise the state could only be WAITING, so we need to reset the state
@@ -63,40 +59,42 @@
       },
       isVisible(floor) {
         return (
-          this.currentFloor === floor && this.state !== STATE.MOVING && this.state !== STATE.WAITING
+          this.elevator.floor === floor &&
+          this.elevator.state !== STATE.MOVING &&
+          this.elevator.state !== STATE.WAITING
         );
       },
       getDisplayText() {
         // This is to let the display update when the target floor is changed
         // It also sets the new floor and the new state
-        if (this.state === STATE.UPDATING) {
-          if (this.targetFloor > this.currentFloor) {
+        if (this.elevator.state === STATE.UPDATING) {
+          if (this.elevator.target > this.elevator.floor) {
             // This also sets the state to MOVING
-            this.changeFloor({ shaft: this.shaft, newFloor: this.currentFloor + 1 });
-            this.displayText = this.targetFloor + 1 + " /\\";
-          } else if (this.targetFloor < this.currentFloor) {
-            this.changeFloor({ shaft: this.shaft, newFloor: this.currentFloor - 1 });
-            this.displayText = this.targetFloor + 1 + " \\/";
+            this.changeFloor({ shaft: this.shaft, newFloor: this.elevator.floor + 1 });
+            this.displayText = this.elevator.target + 1 + " /\\";
+          } else if (this.elevator.target < this.elevator.floor) {
+            this.changeFloor({ shaft: this.shaft, newFloor: this.elevator.floor - 1 });
+            this.displayText = this.elevator.target + 1 + " \\/";
           }
           // If the floor is reached, that means we need to start waiting
           else {
             this.setState({ shaft: this.shaft, newState: STATE.WAITING });
-            this.displayText = (this.targetFloor + 1).toString();
+            this.displayText = (this.elevator.target + 1).toString();
           }
         }
 
         return this.displayText;
       },
       getAnimation(floor) {
-        if (this.state === STATE.WAITING) return "blink";
-        else if (this.targetFloor > floor) return "up";
+        if (this.elevator.state === STATE.WAITING) return "blink";
+        else if (this.elevator.target > floor) return "up";
         else return "down";
       },
-      getHeight(floor) {
-        if (this.state !== STATE.WAITING) {
-          if (this.targetFloor > floor) {
-            return -Math.round(500 / this.floors) + "px";
-          } else return Math.round(500 / this.floors) + "px";
+      getTop(floor) {
+        if (this.elevator.state !== STATE.WAITING) {
+          if (this.elevator.target > floor) {
+            return -Math.round(this.appHeight / this.floors) + "px";
+          } else return Math.round(this.appHeight / this.floors) + "px";
         }
       },
       ...mapMutations(["setState"]),
@@ -105,39 +103,17 @@
   };
 </script>
 
-<style scoped>
-  .shaft {
-    display: flex;
-    flex-direction: column-reverse;
-    min-width: 70px;
-    height: 500px;
-    border-left: 2px solid gray;
-    border-right: 2px solid gray;
-  }
-  .floor {
-    flex-grow: 1;
-    position: relative;
-    border-top: 1px solid lightgray;
-    border-bottom: 1px solid lightgray;
-  }
+<style>
   .elevator {
     position: absolute;
     display: flex;
     justify-content: center;
     left: 0px;
     top: 0px;
-    background-color: cyan;
-    min-width: 70px;
     height: 100%;
+    width: 100%;
+    background-color: cyan;
   }
-  .display {
-    margin-top: var(--display-margin);
-  }
-  .text {
-    margin: 0px;
-    font-family: Arial, Helvetica, sans-serif;
-  }
-
   .up-leave-active,
   .down-leave-active {
     transition: top 1s linear;
@@ -146,7 +122,6 @@
   .down-leave-to {
     top: var(--top);
   }
-
   @keyframes blink {
     0%,
     33%,
@@ -161,6 +136,6 @@
     }
   }
   .blink-leave-active {
-    animation: blink 2s ease-in-out;
+    animation: blink 3s ease-in-out;
   }
 </style>

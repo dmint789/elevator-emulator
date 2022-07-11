@@ -1,9 +1,9 @@
 <template>
-  <div class="controls">
-    <div class="floor" v-for="floor in floors" :key="floor">
+  <div class="column" style="width: 100%">
+    <div class="floor center-child" v-for="floor in floors" :key="floor">
       <button
         class="button"
-        :style="{ backgroundColor: isInQueue(floor - 1) ? 'orange' : 'blue' }"
+        :style="{ backgroundColor: isInQueue(floor - 1) ? 'orange' : 'lightGray' }"
         @click="onFloorSelect(floor - 1)"
       >
         {{ floor }}
@@ -40,24 +40,10 @@
   };
 </script>
 
-<style scoped>
-  .controls {
-    flex-grow: 1;
-    display: flex;
-    flex-direction: column-reverse;
-    height: 500px;
-  }
-  .floor {
-    flex-grow: 1;
+<style>
+  .center-child {
     display: flex;
     align-items: center;
-    border-top: 1px solid lightgray;
-    border-bottom: 1px solid lightgray;
     padding-left: 20px;
-  }
-  .button {
-    margin-left: 10px;
-    height: 22px;
-    color: white;
   }
 </style>
