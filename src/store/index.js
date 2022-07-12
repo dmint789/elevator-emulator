@@ -32,7 +32,7 @@ export default createStore({
         !state.queue.find(item => item === floor) &&
         !state.elevators.find(
           item =>
-            item.floor === floor && (item.state === STATE.IDLE || item.state === STATE.WAITING)
+            (item.floor === floor && (item.state === STATE.IDLE || item.state === STATE.WAITING)) || item.target === floor
         )
       );
     },
